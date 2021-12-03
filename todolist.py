@@ -1,6 +1,9 @@
 from tkinter import *
 from db import Database
 from tkinter import messagebox
+from tkinter import ttk
+import tkinter as tk
+
 
 db = Database('todos.db')
 
@@ -10,12 +13,12 @@ def populate_list():
         todo_list.insert(END, row)
 
 def add_item():
-    if todo_text.get() == '':
+    if todo_entry.get() == '':
         messagebox.showerror('Required', 'Please input txt fields')
         return
-    db.insert(todo_text.get())
+    db.insert(todo_entry.get())
     todo_list.delete(0, END)
-    todo_list.insert(END, (todo_text.get()))
+    todo_list.insert(END, (todo_entry.get()))
 
     clear_text()
     populate_list()
@@ -34,7 +37,15 @@ def delete_item():
     populate_list()
 
 def update_item():
-    db.update(selected_item[0], todo_text.get()) 
+    db.update(selected_item[0], todo_stringVar.get()) 
+    populate_list()
+
+def clear_text():
+    todo_entry.delete(0, END)
+
+def delete_item():
+    db.remove(selected_item[0])
+    clear_text()
     populate_list()
 
 def clear_text():
@@ -42,46 +53,51 @@ def clear_text():
 
 # Create window object
 app = Tk()
+title = ttk.Label(app, text="TODO LIST APPLICATION",background="#80ced6", font=('Impact',40))
+title.pack(padx=10, pady=10)
 
-# Todo Textfield and Label
-todo_text = StringVar()
-todo_label = Label(app, text='Enter task', font=('normal', 14), pady=20)
-todo_label.grid(row=0, column=0, sticky=W)
-todo_entry = Entry(app, textvariable=todo_text)
-todo_entry.grid(row=0, column=1)
 
-# Todo List (Listbox)
-todo_list = Listbox(app, height=8, width=50)
-todo_list.grid(row=3, column=0, columnspan=3, rowspan=6, pady=20, padx=20)
+# Todo Textfield and add button
+todo_stringVar = StringVar()
+todo_text= ttk.Frame(app)
+todo_text.pack()
+todo_entry = tk.Entry(todo_text, font=('normal', 14),bg='#d5f4e6', textvariable=todo_stringVar)
+todo_entry.insert(0,"Enter Task...")
+todo_entry.bind("<Button-1>", clear_text)
+todo_entry.pack(side='left', pady=15, ipadx=28, ipady=20 )
 
-# Scrollbar
-scrollbar = Scrollbar(app)
-scrollbar.grid(row=3, column=3)
+add_btn = ttk.Button(todo_text, text='ADD', command=add_item)
+add_btn.pack(side='right', ipadx=40 , ipady=20)
 
-# Set scroll to listbox
-todo_list.configure(yscrollcommand=scrollbar.set)
-scrollbar.configure(command=todo_list.yview) 
+# listbox
+todo_list = Listbox(app, height=8, width=40, bg='#d5f4e6', font='Helvetica 12 bold')
+todo_list.pack(ipadx=125, ipady=30, pady=15)
 
 # Bind Select
 todo_list.bind('<<ListboxSelect>>', select_item)
 
-# Buttons
-add_btn = Button(app, text='Add', width=12, command=add_item)
-add_btn.grid(row=2, column=0, pady=20)
+# buttons
+def on_enter(e):
+   delete_btn.config(background='OrangeRed3', foreground= "white")
+def on_leave(e):
+   delete_btn.config(background= 'SystemButtonFace', foreground= 'black')
 
-delete_btn = Button(app, text='Delete', width=12, command=delete_item)
-delete_btn.grid(row=2, column=1)
+delete_btn = Button(app, text='DELETE', width=12, bg='#f7786b', fg='white', font='Helvetica 15 bold',  command=delete_item)
+delete_btn.pack(side='left',padx=30, ipady=10, ipadx=30)
 
-update_btn = Button(app, text='Update', width=12, command=update_item)
-update_btn.grid(row=2, column=2)
+update_btn = Button(app, text='UPDATE', bg='#034f84',fg='white', font='Helvetica 15 bold', command=update_item)
+update_btn.pack(side='left',padx=20 , ipady=10, ipadx=50)
 
-clear_btn = Button(app, text='Clear', width=12, command=clear_text)
-clear_btn.grid(row=2, column=3, padx=15)
+clear_btn = Button(app, text='CLEAR TEXT',bg='#034f84',fg='white',font='Helvetica 15 bold', command=clear_text)
+clear_btn.pack(side='left',padx=20 , ipady=10, ipadx=30)
 
-app.title('todo list app')
-app.geometry('700x350')
-
+app.geometry('800x500')
+app.title("TODOLIST")
+app.configure(bg="#80ced6")
 #populate data
 populate_list()
+
+delete_btn.bind('<Enter>', on_enter)
+delete_btn.bind('<Leave>', on_leave)
 
 app.mainloop()
